@@ -23,3 +23,31 @@ jobs:
       
     - name: Run tests
       run: npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Simulate deployment
+      run: |
+        echo "Deploying to staging environment..."
+        echo "Current version: $(git rev-parse --short HEAD)"
+        echo "Deployment successful!"
+
+    - name: Authenticate deployment
+      env:
+        DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+      run: echo "Using deploy token starting with ${DEPLOY_TOKEN:0:4}..."
+
+    - name: Notify on success
+      if: success()
+      run: echo "Pipeline succeeded! Notifying team..."
+  
+    - name: Notify on failure
+      if: failure()
+      run: echo "Pipeline failed! Notifying team..." && exit 1      
